@@ -1,0 +1,8 @@
+.app {
+  min-height: 100vh;
+}
+
+.layout {
+  min-height: 100vh;
+  padding: 1.5rem;
+}
