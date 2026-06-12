@@ -61,8 +61,7 @@ export default function Dashboard() {
         setStudents(studentResponse.students);
       } catch (error) {
         setError(getApiErrorMessage(error));
-      }
-      finally {
+      } finally {
         setLoading(false);
       }
     };
@@ -141,7 +140,6 @@ export default function Dashboard() {
         </Box>
       ) : (
         <>
-
           <Grid container spacing={3} sx={{ mb: 4 }}>
             {stats.map((stat) => (
               <Grid key={stat.title} size={{ xs: 12, sm: 6, md: 3 }}>
@@ -169,7 +167,11 @@ export default function Dashboard() {
                           sx={{ display: "flex", alignItems: "center", mt: 1 }}
                         >
                           <TrendingUpIcon
-                            sx={{ fontSize: 16, color: "success.main", mr: 0.5 }}
+                            sx={{
+                              fontSize: 16,
+                              color: "success.main",
+                              mr: 0.5,
+                            }}
                           />
                           <Typography variant="caption" color="success.main">
                             {stat.trend}
@@ -221,7 +223,10 @@ export default function Dashboard() {
                             <Typography variant="body1" fontWeight={500}>
                               {activity.action}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
                               by {activity.user}
                             </Typography>
                           </Box>
@@ -299,6 +304,7 @@ export default function Dashboard() {
                     fullWidth
                     sx={{ mb: 1.5 }}
                     startIcon={<PeopleIcon />}
+                    onClick={() => navigate("/admin/teachers")}
                   >
                     Add New Teacher
                   </Button>

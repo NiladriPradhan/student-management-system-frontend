@@ -1,9 +1,12 @@
 import axios, { AxiosError } from "axios";
 import { getToken, logout } from "../utils/auth";
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost/student_management/backend/api";
+const RAW_API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+export const API_BASE_URL = RAW_API_BASE.replace(/\/$/, "") + "/api";
+
+export const UPLOAD_BASE_URL =
+  import.meta.env.VITE_UPLOAD_URL || RAW_API_BASE.replace(/\/$/, "");
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

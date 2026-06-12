@@ -32,7 +32,7 @@ const emptyDashboard: TeacherDashboardData = {
 
 export const getTeacherDashboard = async (): Promise<TeacherDashboardData> => {
   const response = await api.get<ApiResponse<TeacherDashboardData>>(
-    "/dashboard/getTeacherDashboard.php",
+    "/dashboard/teacher",
   );
 
   const data = response.data.data;
@@ -59,5 +59,46 @@ export const getTeacherDashboard = async (): Promise<TeacherDashboardData> => {
     recent_resources: Array.isArray(data.recent_resources)
       ? data.recent_resources
       : [],
+  };
+};
+
+export interface StudentDashboardStats {
+  enrolled_courses: number;
+  completed_assignments: number;
+  attendance_percentage: number;
+}
+
+export interface StudentDashboardData {
+  stats: StudentDashboardStats;
+  today_schedule: ClassSchedule[];
+  recent_submissions: Array<{
+    id: number;
+    assignment_title: string;
+    class_name: string;
+    submitted_at: string | Date | null;
+    status: string;
+  }>;
+}
+
+const emptyStudentDashboard: StudentDashboardData = {
+  stats: { enrolled_courses: 0, completed_assignments: 0, attendance_percentage: 0 },
+  today_schedule: [],
+  recent_submissions: [],
+};
+
+export const getStudentDashboard = async (): Promise<StudentDashboardData> => {
+  const response = await api.get<ApiResponse<StudentDashboardData>>("/dashboard/student");
+  const data = response.data.data;
+
+  if (!data) return emptyStudentDashboard;
+
+  return {
+    stats: {
+      enrolled_courses: Number(data.stats?.enrolled_courses ?? 0),
+      completed_assignments: Number(data.stats?.completed_assignments ?? 0),
+      attendance_percentage: Number(data.stats?.attendance_percentage ?? 0),
+    },
+    today_schedule: Array.isArray(data.today_schedule) ? data.today_schedule : [],
+    recent_submissions: Array.isArray(data.recent_submissions) ? data.recent_submissions : [],
   };
 };

@@ -119,7 +119,7 @@ export default function Register() {
         role: formData.role,
       };
 
-      const response = await api.post("/auth/register.php", payload);
+      const response = await api.post("/auth/register", payload);
 
       setSnackbar({
         open: true,

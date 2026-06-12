@@ -6,7 +6,7 @@ export const login = async (
   payload: LoginRequest,
 ): Promise<ApiResponse<AuthPayload>> => {
   const response = await api.post<ApiResponse<AuthPayload>>(
-    "/auth/index.php",
+    "/auth/login",
     payload,
   );
 
@@ -14,14 +14,14 @@ export const login = async (
 };
 
 export const getProfile = async (): Promise<ApiResponse<AuthUser>> => {
-  const response = await api.get<ApiResponse<AuthUser>>("/auth/profile.php");
+  const response = await api.get<ApiResponse<AuthUser>>("/auth/profile");
 
   return response.data;
 };
 
 export const logoutUser = async (): Promise<void> => {
   try {
-    await api.post("/auth/logout.php");
+    await api.post("/auth/logout");
   } finally {
     clearStoredAuth();
   }

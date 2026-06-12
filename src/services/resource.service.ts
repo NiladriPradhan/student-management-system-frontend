@@ -1,5 +1,5 @@
 import type { AxiosProgressEvent } from "axios";
-import { api, API_BASE_URL } from "./api";
+import { api, UPLOAD_BASE_URL } from "./api";
 import type { ApiResponse } from "../types/auth";
 import type { Resource, UploadResourcePayload } from "../types/resource";
 
@@ -19,13 +19,13 @@ const normalizeResource = (resource: Partial<Resource>): Resource => ({
 });
 
 export const getResourceFileUrl = (filePath: string) => {
-  const backendBaseUrl = API_BASE_URL.replace(/\/api\/?$/, "");
+  const backendBaseUrl = UPLOAD_BASE_URL;
   return `${backendBaseUrl}/${filePath.replace(/^\/+/, "")}`;
 };
 
 export const getTeacherResources = async (): Promise<Resource[]> => {
   const response = await api.get<ApiResponse<Resource[]>>(
-    "/resources/getTeacherResources.php",
+    "/resources",
   );
 
   return Array.isArray(response.data.data)
@@ -37,8 +37,7 @@ export const getClassResources = async (
   classId: number,
 ): Promise<Resource[]> => {
   const response = await api.get<ApiResponse<Resource[]>>(
-    "/resources/getClassResources.php",
-    { params: { class_id: classId } },
+    `/resources/class/${classId}`,
   );
 
   return Array.isArray(response.data.data)
@@ -57,7 +56,7 @@ export const uploadResource = async (
   formData.append("file", payload.file);
 
   const response = await api.post<ApiResponse<{ resource_id: number }>>(
-    "/resources/uploadResource.php",
+    "/resources",
     formData,
     {
       headers: {
@@ -77,7 +76,5 @@ export const uploadResource = async (
 };
 
 export const deleteResource = async (id: number): Promise<void> => {
-  await api.delete<ApiResponse<null>>("/resources/deleteResource.php", {
-    data: { id },
-  });
+  await api.delete<ApiResponse<null>>(`/resources/${id}`);
 };

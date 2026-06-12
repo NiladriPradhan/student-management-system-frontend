@@ -24,7 +24,7 @@ export const sendMessage = async (
   payload: SendMessagePayload,
 ): Promise<number> => {
   const response = await api.post<ApiResponse<{ message_id: number }>>(
-    "/messages/sendMessage.php",
+    "/messages",
     payload,
   );
 
@@ -35,7 +35,7 @@ export const getTeacherMessages = async (
   classId?: number,
 ): Promise<Message[]> => {
   const response = await api.get<ApiResponse<Message[]>>(
-    "/messages/getTeacherMessages.php",
+    "/messages",
     {
       params: classId ? { class_id: classId } : {},
     },
@@ -48,7 +48,7 @@ export const getTeacherMessages = async (
 
 export const getStudentMessages = async (): Promise<Message[]> => {
   const response = await api.get<ApiResponse<Message[]>>(
-    "/messages/getStudentMessages.php",
+    "/messages/student",
   );
 
   return Array.isArray(response.data.data)
@@ -58,10 +58,7 @@ export const getStudentMessages = async (): Promise<Message[]> => {
 
 export const getClassMessages = async (classId: number): Promise<Message[]> => {
   const response = await api.get<ApiResponse<Message[]>>(
-    "/messages/getClassMessages.php",
-    {
-      params: { class_id: classId },
-    },
+    `/messages/class/${classId}`,
   );
 
   return Array.isArray(response.data.data)

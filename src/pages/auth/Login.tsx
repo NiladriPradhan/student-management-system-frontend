@@ -151,7 +151,33 @@ export default function Login() {
 
       console.log("Login response:", response);
 
-      const authData: AuthPayload = response.data;
+      // Validate response shape: `login` should return ApiResponse<AuthPayload>
+      if (!response || typeof response !== "object") {
+        console.error(
+          "Invalid login response type:",
+          typeof response,
+          response,
+        );
+        const contentPreview =
+          typeof response === "string"
+            ? response.slice(0, 500)
+            : JSON.stringify(response).slice(0, 500);
+        throw new Error(
+          `Invalid response from server (type=${typeof response}): ${contentPreview}`,
+        );
+      }
+
+      if (!response.success) {
+        throw new Error(response.message || "Login failed");
+      }
+
+      const authData: AuthPayload | undefined = (response as any).data;
+
+      if (!authData || !authData.token) {
+        throw new Error(
+          response.message || "Authentication token missing in response",
+        );
+      }
 
       // Keep token and user in the chosen browser storage.
       saveAuth(authData.token, authData.user, rememberMe);
@@ -167,9 +193,14 @@ export default function Login() {
       redirectByRole(profileResponse.data.role);
     } catch (error) {
       console.error("Login error:", error);
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : getErrorMessage(error);
+
       setSnackbar({
         open: true,
-        message: getErrorMessage(error),
+        message,
         severity: "error",
       });
     } finally {
@@ -179,9 +210,9 @@ export default function Login() {
 
   const handleDemoLogin = (role: "admin" | "teacher" | "student") => {
     const demoCredentials = {
-      admin: { email: "admin@gmail.com", password: "123456" },
-      teacher: { email: "teacher@gmail.com", password: "123456" },
-      student: { email: "student@gmail.com", password: "123456" },
+      admin: { email: "niladrip347@gmail.com", password: "Niladri@123" },
+      teacher: { email: "sivani@gmail.com", password: "Sivani@123" },
+      student: { email: "sujoy@gmail.com", password: "Sujoy@123" },
     };
 
     setFormData({
@@ -445,7 +476,7 @@ export default function Login() {
 
           <Divider sx={{ my: 3 }} />
 
-          {/* <Box sx={{ textAlign: "center" }}>
+          <Box sx={{ textAlign: "center" }}>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               Don&apos;t have an account?
             </Typography>
@@ -457,7 +488,7 @@ export default function Login() {
             >
               Register Here
             </Button>
-          </Box> */}
+          </Box>
         </Paper>
       </Box>
 

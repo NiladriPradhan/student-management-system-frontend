@@ -13,37 +13,72 @@ import {
   TableRow,
   Chip,
   LinearProgress,
+  CircularProgress,
 } from "@mui/material";
 import {
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
 } from "@mui/icons-material";
-
-const attendanceData = [
-  { subject: "Mathematics", total: 30, present: 27, absent: 3, percentage: 90 },
-  { subject: "Physics", total: 25, present: 22, absent: 3, percentage: 88 },
-  { subject: "English", total: 28, present: 26, absent: 2, percentage: 93 },
-  {
-    subject: "Computer Science",
-    total: 20,
-    present: 18,
-    absent: 2,
-    percentage: 90,
-  },
-];
-
-const monthlyAttendance = [
-  { date: "2024-01-01", status: "present", subject: "Mathematics" },
-  { date: "2024-01-02", status: "present", subject: "Physics" },
-  { date: "2024-01-03", status: "absent", subject: "English" },
-  { date: "2024-01-04", status: "present", subject: "CS" },
-  { date: "2024-01-05", status: "late", subject: "Mathematics" },
-];
+import { useEffect, useState } from "react";
+import { getMyAttendance } from "../../services/attendance.service";
+import type { Attendance } from "../../types/attendance";
 
 export default function StudentAttendance() {
+  const [attendance, setAttendance] = useState<Attendance[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await getMyAttendance();
+        if (mounted) setAttendance(res.attendance);
+      } catch (err: any) {
+        if (mounted) setError(err?.message || "Failed to load attendance");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (loading) return <CircularProgress />;
+  if (error)
+    return (
+      <Box>
+        <Typography color="error">{error}</Typography>
+      </Box>
+    );
+
+  // Aggregate by subject (class_name)
+  const bySubject = attendance.reduce<Record<string, { present: number; absent: number; late: number }>>((acc, rec) => {
+    const subject = (rec as any).class_name || `Class ${rec.class_id}`;
+    acc[subject] = acc[subject] || { present: 0, absent: 0, late: 0 };
+    if (rec.status === "absent") acc[subject].absent += 1;
+    else if (rec.status === "late") acc[subject].late += 1;
+    else acc[subject].present += 1;
+    return acc;
+  }, {});
+
+  const attendanceData = Object.entries(bySubject).map(([subject, stats]) => {
+    const total = stats.present + stats.absent + stats.late;
+    const percentage = total > 0 ? Math.round((stats.present / total) * 100) : 0;
+    return { subject, total, present: stats.present, absent: stats.absent, percentage };
+  });
+
+  const recent = attendance.slice(0, 10).map((r) => ({ date: r.attendance_date, status: r.status, subject: (r as any).class_name || `Class ${r.class_id}` }));
+
   const overallAttendance =
     attendanceData.reduce((acc, curr) => acc + curr.percentage, 0) /
-    attendanceData.length;
+    Math.max(attendanceData.length, 1);
 
   return (
     <Box>
@@ -79,7 +114,7 @@ export default function StudentAttendance() {
                 Total Present Days
               </Typography>
               <Typography variant="h2" fontWeight={600} color="success.main">
-                {attendanceData.reduce((acc, curr) => acc + curr.present, 0)}
+                {attendance.filter((a) => a.status === "present").length}
               </Typography>
               <CheckCircleIcon sx={{ mt: 1, color: "#4caf50" }} />
             </CardContent>
@@ -92,7 +127,7 @@ export default function StudentAttendance() {
                 Total Absent Days
               </Typography>
               <Typography variant="h2" fontWeight={600} color="error.main">
-                {attendanceData.reduce((acc, curr) => acc + curr.absent, 0)}
+                {attendance.filter((a) => a.status === "absent").length}
               </Typography>
               <CancelIcon sx={{ mt: 1, color: "#f44336" }} />
             </CardContent>
@@ -135,9 +170,7 @@ export default function StudentAttendance() {
                         value={item.percentage}
                         sx={{ width: 100, height: 8, borderRadius: 4 }}
                       />
-                      <Typography variant="body2">
-                        {item.percentage}%
-                      </Typography>
+                      <Typography variant="body2">{item.percentage}%</Typography>
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -161,7 +194,7 @@ export default function StudentAttendance() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {monthlyAttendance.map((record, index) => (
+              {recent.map((record, index) => (
                 <TableRow key={index}>
                   <TableCell>{record.date}</TableCell>
                   <TableCell>{record.subject}</TableCell>
@@ -179,8 +212,8 @@ export default function StudentAttendance() {
                         record.status === "present"
                           ? "success"
                           : record.status === "late"
-                            ? "warning"
-                            : "error"
+                          ? "warning"
+                          : "error"
                       }
                       size="small"
                     />

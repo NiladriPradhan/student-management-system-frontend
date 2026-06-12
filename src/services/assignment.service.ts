@@ -1,5 +1,5 @@
 import type { AxiosProgressEvent } from "axios";
-import { api, API_BASE_URL } from "./api";
+import { api, UPLOAD_BASE_URL } from "./api";
 import type { ApiResponse } from "../types/auth";
 import type {
   Assignment,
@@ -59,7 +59,7 @@ const normalizeSubmission = (
 });
 
 export const getAssignmentFileUrl = (filePath: string) => {
-  const backendBaseUrl = API_BASE_URL.replace(/\/api\/?$/, "");
+  const backendBaseUrl = UPLOAD_BASE_URL;
   return `${backendBaseUrl}/${filePath.replace(/^\/+/, "")}`;
 };
 
@@ -67,7 +67,7 @@ export const createAssignment = async (
   payload: AssignmentFormValues,
 ): Promise<number> => {
   const response = await api.post<ApiResponse<{ assignment_id: number }>>(
-    "/assignments/createAssignment.php",
+    "/assignments",
     payload,
   );
 
@@ -76,7 +76,7 @@ export const createAssignment = async (
 
 export const getTeacherAssignments = async (): Promise<Assignment[]> => {
   const response = await api.get<ApiResponse<Assignment[]>>(
-    "/assignments/getTeacherAssignments.php",
+    "/assignments",
   );
 
   return Array.isArray(response.data.data)
@@ -88,7 +88,7 @@ export const getAssignmentSubmissions = async (
   assignmentId: number,
 ): Promise<AssignmentSubmissionsPayload> => {
   const response = await api.get<ApiResponse<AssignmentSubmissionsPayload>>(
-    "/assignments/getTeacherAssignments.php",
+    "/assignments",
     { params: { assignment_id: assignmentId } },
   );
 
@@ -104,20 +104,20 @@ export const updateAssignment = async (
   payload: AssignmentFormValues & { id: number },
 ): Promise<void> => {
   await api.put<ApiResponse<null>>(
-    "/assignments/updateAssignment.php",
+    "/assignments",
     payload,
   );
 };
 
 export const deleteAssignment = async (id: number): Promise<void> => {
-  await api.delete<ApiResponse<null>>("/assignments/deleteAssignment.php", {
+  await api.delete<ApiResponse<null>>("/assignments", {
     data: { id },
   });
 };
 
 export const getClassAssignments = async (): Promise<Assignment[]> => {
   const response = await api.get<ApiResponse<Assignment[]>>(
-    "/assignments/getClassAssignments.php",
+    "/assignments/class",
   );
 
   return Array.isArray(response.data.data)
@@ -135,7 +135,7 @@ export const submitAssignment = async (
   formData.append("file", payload.file);
 
   const response = await api.post<ApiResponse<{ submission_id: number }>>(
-    "/assignments/submitAssignment.php",
+    "/assignments/submit",
     formData,
     {
       headers: {
@@ -156,7 +156,7 @@ export const submitAssignment = async (
 
 export const getMySubmissions = async (): Promise<AssignmentSubmission[]> => {
   const response = await api.get<ApiResponse<AssignmentSubmission[]>>(
-    "/assignments/getMySubmissions.php",
+    "/assignments/my-submissions",
   );
 
   return Array.isArray(response.data.data)

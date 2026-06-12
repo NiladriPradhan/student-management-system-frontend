@@ -36,7 +36,7 @@ export const getAdminSchedules = async (
   };
 
   const response = await api.get<ApiResponse<ClassSchedule[]>>(
-    "/class_schedules/getSchedules.php",
+    "/schedules",
     { params },
   );
 
@@ -49,7 +49,7 @@ export const createAdminSchedule = async (
   payload: CreateSchedulePayload,
 ): Promise<number> => {
   const response = await api.post<ApiResponse<{ schedule_id: number }>>(
-    "/class_schedules/createSchedule.php",
+    "/schedules",
     payload,
   );
 
@@ -59,14 +59,9 @@ export const createAdminSchedule = async (
 export const updateAdminSchedule = async (
   payload: UpdateSchedulePayload,
 ): Promise<void> => {
-  await api.put<ApiResponse<null>>(
-    "/class_schedules/updateSchedule.php",
-    payload,
-  );
+  await api.put<ApiResponse<null>>(`/schedules/${payload.id}`, payload);
 };
 
 export const deleteAdminSchedule = async (id: number): Promise<void> => {
-  await api.delete<ApiResponse<null>>("/class_schedules/deleteSchedule.php", {
-    data: { id },
-  });
+  await api.delete<ApiResponse<null>>(`/schedules/${id}`);
 };

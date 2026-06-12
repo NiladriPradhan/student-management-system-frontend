@@ -63,7 +63,7 @@ const normalizeAttendanceListPayload = (
 
 export const getAttendance = async (): Promise<AttendanceListPayload> => {
   const response = await api.get<ApiResponse<AttendanceApiData>>(
-    "/attendance/getAttendance.php",
+    "/attendance",
   );
 
   return normalizeAttendanceListPayload(response.data.data);
@@ -73,10 +73,7 @@ export const getStudentAttendance = async (
   student_id: number,
 ): Promise<AttendanceListPayload> => {
   const response = await api.get<ApiResponse<AttendanceApiData>>(
-    "/attendance/getStudentAttendance.php",
-    {
-      params: { student_id },
-    },
+    `/attendance/student/${student_id}`,
   );
 
   return normalizeAttendanceListPayload(response.data.data);
@@ -92,7 +89,7 @@ export const getAttendanceByDate = async (
   }
 
   const response = await api.get<ApiResponse<AttendanceApiData>>(
-    "/attendance/getAttendanceByDate.php",
+    "/attendance/by-date",
     {
       params,
     },
@@ -105,7 +102,7 @@ export const markAttendance = async (
   formValues: AttendanceFormValues,
 ): Promise<number> => {
   const response = await api.post<ApiResponse<{ attendance_id: number }>>(
-    "/attendance/markAttendance.php",
+    "/attendance",
     formValues,
   );
 
@@ -116,20 +113,15 @@ export const updateAttendance = async (
   attendance_id: number,
   formValues: AttendanceFormValues,
 ): Promise<void> => {
-  await api.put<ApiResponse<null>>(
-    "/attendance/updateAttendance.php",
-    {
-      attendance_id,
-      ...formValues,
-    },
-  );
+  await api.put<ApiResponse<null>>(`/attendance/${attendance_id}`, formValues);
 };
 
 export const deleteAttendance = async (id: number): Promise<void> => {
-  await api.delete<ApiResponse<null>>(
-    "/attendance/deleteAttendance.php",
-    {
-      data: { id },
-    },
-  );
+  await api.delete<ApiResponse<null>>(`/attendance/${id}`);
+};
+
+export const getMyAttendance = async (): Promise<AttendanceListPayload> => {
+  const response = await api.get<ApiResponse<AttendanceApiData>>("/attendance/my");
+
+  return normalizeAttendanceListPayload(response.data.data);
 };

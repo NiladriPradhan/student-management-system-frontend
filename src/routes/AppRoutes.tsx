@@ -10,16 +10,17 @@ import { studentRoutes } from "./StudentRoutes";
 import { teacherRoutes } from "./TeacherRoutes";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
+import Register from "../pages/auth/Register";
 
 const appRoutes = [
   {
     path: "/",
     element: <Home />,
   },
-  // {
-  //   path: "/register",
-  //   element: <Register />,
-  // },
+  {
+    path: "/register",
+    element: <Register />,
+  },
   {
     path: "/login",
     element: <Login />,

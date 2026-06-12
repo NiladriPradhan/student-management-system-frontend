@@ -13,6 +13,7 @@ import {
   ListItemText,
   ListItemAvatar,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 import {
   Book as BookIcon,
@@ -22,94 +23,106 @@ import {
   TrendingUp as TrendingUpIcon,
   Schedule as ScheduleIcon,
 } from "@mui/icons-material";
+import { useEffect, useState } from "react";
+import { getStudentDashboard } from "../../services/dashboard";
+import type { StudentDashboardData } from "../../services/dashboard";
 
-const stats = [
-  {
-    title: "Enrolled Courses",
-    value: "6",
-    icon: <BookIcon />,
-    color: "#667eea",
-    bgColor: "#e8eaf6",
-    trend: "+2 this semester",
-  },
-  {
-    title: "Completed Assignments",
-    value: "12",
-    icon: <AssignmentIcon />,
-    color: "#2e7d32",
-    bgColor: "#e8f5e9",
-    trend: "85% completion",
-  },
-  {
-    title: "Overall GPA",
-    value: "3.8",
-    icon: <GradeIcon />,
-    color: "#ed6c02",
-    bgColor: "#fff3e0",
-    trend: "A- Average",
-  },
-  {
-    title: "Attendance",
-    value: "92%",
-    icon: <CalendarIcon />,
-    color: "#9c27b0",
-    bgColor: "#f3e5f5",
-    trend: "Excellent",
-  },
+const staticLabels = [
+  "Enrolled Courses",
+  "Completed Assignments",
+  "Overall GPA",
+  "Attendance",
 ];
 
-const upcomingClasses = [
-  {
-    id: 1,
-    subject: "Mathematics",
-    time: "10:00 AM - 11:30 AM",
-    room: "Room 201",
-    teacher: "Prof. Smith",
-  },
-  {
-    id: 2,
-    subject: "Physics",
-    time: "12:00 PM - 1:30 PM",
-    room: "Lab 3",
-    teacher: "Dr. Johnson",
-  },
-  {
-    id: 3,
-    subject: "English Literature",
-    time: "2:00 PM - 3:30 PM",
-    room: "Room 105",
-    teacher: "Prof. Williams",
-  },
-];
-
-const recentGrades = [
-  {
-    id: 1,
-    subject: "Mathematics",
-    assignment: "Calculus Quiz",
-    grade: "A",
-    score: 92,
-    date: "2 days ago",
-  },
-  {
-    id: 2,
-    subject: "Physics",
-    assignment: "Lab Report",
-    grade: "B+",
-    score: 85,
-    date: "5 days ago",
-  },
-  {
-    id: 3,
-    subject: "English",
-    assignment: "Essay",
-    grade: "A-",
-    score: 88,
-    date: "1 week ago",
-  },
-];
+// Student dashboard will be loaded from the server
 
 export default function StudentDashboard() {
+  const [data, setData] = useState<StudentDashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const resp = await getStudentDashboard();
+        if (mounted) {
+          setData(resp);
+        }
+      } catch (err) {
+        if (mounted) {
+          setError("Failed to load dashboard");
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <Box sx={{ py: 8, textAlign: "center" }}>
+        <Typography variant="h6" color="error" gutterBottom>
+          {error ?? "No data available"}
+        </Typography>
+      </Box>
+    );
+  }
+
+  const stats = [
+    {
+      title: "Enrolled Courses",
+      value: String(data.stats.enrolled_courses),
+      icon: <BookIcon />,
+      color: "#667eea",
+      bgColor: "#e8eaf6",
+      trend: "",
+    },
+    {
+      title: "Completed Assignments",
+      value: String(data.stats.completed_assignments),
+      icon: <AssignmentIcon />,
+      color: "#2e7d32",
+      bgColor: "#e8f5e9",
+      trend: "",
+    },
+    {
+      title: "Overall GPA",
+      value: "-",
+      icon: <GradeIcon />,
+      color: "#ed6c02",
+      bgColor: "#fff3e0",
+      trend: "",
+    },
+    {
+      title: "Attendance",
+      value: `${data.stats.attendance_percentage}%`,
+      icon: <CalendarIcon />,
+      color: "#9c27b0",
+      bgColor: "#f3e5f5",
+      trend: "",
+    },
+  ];
+
   return (
     <Box>
       <Typography variant="h4" fontWeight={600} gutterBottom>
@@ -175,7 +188,7 @@ export default function StudentDashboard() {
               Today's Schedule
             </Typography>
             <List>
-              {upcomingClasses.map((cls, index) => (
+              {data.today_schedule.map((cls, index) => (
                 <Box key={cls.id}>
                   <ListItem>
                     <ListItemAvatar>
@@ -192,16 +205,16 @@ export default function StudentDashboard() {
                       secondary={
                         <>
                           <Typography variant="caption" display="block">
-                            {cls.time}
+                            {`${cls.start_time} - ${cls.end_time}`}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {cls.room} • {cls.teacher}
+                            {cls.class_name} • {cls.teacher_name}
                           </Typography>
                         </>
                       }
                     />
                   </ListItem>
-                  {index < upcomingClasses.length - 1 && (
+                  {index < data.today_schedule.length - 1 && (
                     <Divider variant="inset" component="li" />
                   )}
                 </Box>
@@ -216,16 +229,17 @@ export default function StudentDashboard() {
         <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 2, height: "100%" }}>
             <Typography variant="h6" fontWeight={600} gutterBottom>
-              Recent Grades
+              Recent Submissions
             </Typography>
             <List>
-              {recentGrades.map((grade, index) => (
-                <Box key={grade.id}>
+              {data.recent_submissions.map((item, index) => (
+                <Box key={item.id}>
                   <ListItem>
                     <ListItemAvatar>
                       <Avatar
                         sx={{
-                          bgcolor: grade.grade === "A" ? "#4caf50" : "#ff9800",
+                          bgcolor:
+                            item.status === "submitted" ? "#4caf50" : "#ff9800",
                         }}
                       >
                         <GradeIcon />
@@ -240,41 +254,43 @@ export default function StudentDashboard() {
                           }}
                         >
                           <Typography variant="body1" fontWeight={500}>
-                            {grade.subject}
+                            {item.assignment_title}
                           </Typography>
                           <Typography
                             variant="h6"
                             fontWeight={600}
                             color="primary"
                           >
-                            {grade.grade}
+                            {item.status}
                           </Typography>
                         </Box>
                       }
                       secondary={
                         <>
                           <Typography variant="caption">
-                            {grade.assignment} • Score: {grade.score}%
+                            {item.class_name}
                           </Typography>
                           <Typography
                             variant="caption"
                             color="text.secondary"
                             display="block"
                           >
-                            {grade.date}
+                            {item.submitted_at
+                              ? new Date(item.submitted_at).toLocaleString()
+                              : "-"}
                           </Typography>
                         </>
                       }
                     />
                   </ListItem>
-                  {index < recentGrades.length - 1 && (
+                  {index < data.recent_submissions.length - 1 && (
                     <Divider variant="inset" component="li" />
                   )}
                 </Box>
               ))}
             </List>
             <Button variant="outlined" fullWidth sx={{ mt: 2 }}>
-              View All Grades
+              View All Submissions
             </Button>
           </Paper>
         </Grid>

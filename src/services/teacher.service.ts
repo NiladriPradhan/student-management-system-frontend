@@ -112,7 +112,7 @@ const fetchTeacherList = async (
  * @returns Promise<TeacherListPayload>
  */
 export const getTeachers = async (): Promise<TeacherListPayload> => {
-  return fetchTeacherList(["/teachers/getTeachers.php"]);
+  return fetchTeacherList(["/teachers"]);
 };
 
 /**
@@ -130,7 +130,7 @@ export const searchTeachers = async (
 
   try {
     const response = await api.get<ApiResponse<TeacherListApiData>>(
-      "/teachers/searchTeacher.php",
+      "/teachers/search",
       {
         params: { keyword: keyword.trim() },
       },
@@ -161,7 +161,7 @@ export const createTeacher = async (
   formValues: TeacherFormValues,
 ): Promise<number> => {
   const response = await api.post<ApiResponse<{ teacher_id: number }>>(
-    "/teachers/addTeacher.php",
+    "/teachers",
     formValues,
   );
 
@@ -178,13 +178,7 @@ export const updateTeacher = async (
   id: number,
   formValues: TeacherFormValues,
 ): Promise<void> => {
-  await api.put<ApiResponse<null>>(
-    "/teachers/updateTeacher.php",
-    {
-      id,
-      ...formValues,
-    },
-  );
+  await api.put<ApiResponse<null>>(`/teachers/${id}`, formValues);
 };
 
 /**
@@ -193,10 +187,5 @@ export const updateTeacher = async (
  * @returns Promise<void>
  */
 export const deleteTeacher = async (id: number): Promise<void> => {
-  await api.delete<ApiResponse<null>>(
-    "/teachers/deleteTeacher.php",
-    {
-      data: { id },
-    },
-  );
+  await api.delete<ApiResponse<null>>(`/teachers/${id}`);
 };

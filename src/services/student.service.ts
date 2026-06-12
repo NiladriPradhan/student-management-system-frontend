@@ -91,13 +91,13 @@ const fetchStudentList = async (
 };
 
 export const getStudents = async (): Promise<StudentListPayload> => {
-  return fetchStudentList(["/students/getStudents.php"]);
+  return fetchStudentList(["/students"]);
 };
 
 export const searchStudents = async (
   keyword: string,
 ): Promise<StudentListPayload> => {
-  return fetchStudentList(["/students/searchStudent.php"], keyword);
+  return fetchStudentList(["/students/search"], keyword);
 };
 
 const postStudent = async (
@@ -121,10 +121,7 @@ const postStudent = async (
 export const createStudent = async (
   payload: StudentFormValues | CreateStudentPayload,
 ): Promise<Student> => {
-  return postStudent(
-    ["/students/createStudent.php", "/students/addStudent.php"],
-    payload,
-  );
+  return postStudent(["/students"], payload);
 };
 
 export const updateStudent = async (
@@ -132,11 +129,8 @@ export const updateStudent = async (
   payload: StudentFormValues,
 ): Promise<Student> => {
   const response = await api.put<ApiResponse<Student>>(
-    "/students/updateStudent.php",
-    {
-      id,
-      ...payload,
-    },
+    `/students/${id}`,
+    payload,
   );
 
   return normalizeStudent(response.data.data);
@@ -146,10 +140,7 @@ export const deleteStudent = async (
   id: number,
 ): Promise<DeleteStudentPayload> => {
   const response = await api.delete<ApiResponse<DeleteStudentPayload>>(
-    "/students/deleteStudent.php",
-    {
-      data: { id },
-    },
+    `/students/${id}`,
   );
 
   return {

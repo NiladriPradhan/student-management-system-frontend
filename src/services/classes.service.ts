@@ -60,9 +60,7 @@ const normalizeStudent = (data: Partial<Student>): Student => ({
 });
 
 export const getClasses = async (): Promise<ClassListPayload> => {
-  const response = await api.get<ApiResponse<Class[]>>(
-    "/classes/getClasses.php",
-  );
+  const response = await api.get<ApiResponse<Class[]>>("/classes");
 
   return normalizeClassListPayload(response.data.data);
 };
@@ -70,10 +68,7 @@ export const getClasses = async (): Promise<ClassListPayload> => {
 export const createClass = async (
   payload: ClassFormValues,
 ): Promise<Class> => {
-  const response = await api.post<ApiResponse<Class>>(
-    "/classes/createClass.php",
-    payload,
-  );
+  const response = await api.post<ApiResponse<Class>>("/classes", payload);
 
   return normalizeClass(response.data.data);
 };
@@ -82,10 +77,7 @@ export const updateClass = async (
   id: number,
   payload: ClassFormValues,
 ): Promise<Class> => {
-  await api.put<ApiResponse<null>>("/classes/updateClass.php", {
-    id,
-    ...payload,
-  });
+  await api.put<ApiResponse<null>>(`/classes/${id}`, payload);
 
   return {
     id,
@@ -95,14 +87,12 @@ export const updateClass = async (
 };
 
 export const deleteClass = async (id: number): Promise<void> => {
-  await api.delete<ApiResponse<null>>("/classes/deleteClass.php", {
-    data: { id },
-  });
+  await api.delete<ApiResponse<null>>(`/classes/${id}`);
 };
 
 export const getTeacherAssignments = async (): Promise<TeacherAssignment[]> => {
   const response = await api.get<ApiResponse<TeacherAssignment[]>>(
-    "/teacher-classes/getTeacherClasses.php",
+    "/teacher-classes",
   );
 
   return Array.isArray(response.data.data)
@@ -115,7 +105,7 @@ export const assignTeacherToClass = async (
   class_id: number,
   subject: string,
 ): Promise<void> => {
-  await api.post<ApiResponse<null>>("/teacher-classes/assignTeacher.php", {
+  await api.post<ApiResponse<null>>("/teacher-classes", {
     teacher_id,
     class_id,
     subject,
@@ -123,17 +113,12 @@ export const assignTeacherToClass = async (
 };
 
 export const removeTeacherAssignment = async (id: number): Promise<void> => {
-  await api.delete<ApiResponse<null>>(
-    "/teacher-classes/removeTeacherClass.php",
-    {
-      data: { id },
-    },
-  );
+  await api.delete<ApiResponse<null>>(`/teacher-classes/${id}`);
 };
 
 export const getClassStudents = async (class_id: number): Promise<Student[]> => {
   const response = await api.get<ApiResponse<Student[]>>(
-    "/student-classes/getClassStudents.php",
+    "/student-classes",
     {
       params: { class_id },
     },
@@ -144,9 +129,22 @@ export const getClassStudents = async (class_id: number): Promise<Student[]> => 
     : [];
 };
 
+export const getMyCourses = async (): Promise<Class[]> => {
+  const response = await api.get<ApiResponse<Class[]>>("/student-classes/my");
+
+  return Array.isArray(response.data.data)
+    ? response.data.data.map((d) => ({
+        id: Number((d as any).id ?? (d as any).legacyId ?? 0),
+        class_name: String((d as any).className ?? (d as any).class_name ?? ""),
+        section: String((d as any).section ?? ""),
+        created_at: String((d as any).createdAt ?? (d as any).created_at ?? ""),
+      }))
+    : [];
+};
+
 export const getTeacherStudents = async (class_id?: number): Promise<Student[]> => {
   const response = await api.get<ApiResponse<Student[]>>(
-    "/teacher_classes/getTeacherStudents.php",
+    "/student-classes/teacher-students",
     {
       params: class_id ? { class_id } : {},
     },
@@ -161,7 +159,7 @@ export const assignStudentToClass = async (
   student_id: number,
   class_id: number,
 ): Promise<void> => {
-  await api.post<ApiResponse<null>>("/student-classes/assignStudent.php", {
+  await api.post<ApiResponse<null>>("/student-classes", {
     student_id,
     class_id,
   });
@@ -171,7 +169,7 @@ export const removeStudentFromClass = async (
   student_id: number,
   class_id: number,
 ): Promise<void> => {
-  await api.delete<ApiResponse<null>>("/student-classes/removeStudent.php", {
+  await api.delete<ApiResponse<null>>("/student-classes", {
     data: {
       student_id,
       class_id,

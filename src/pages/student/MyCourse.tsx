@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Grid,
@@ -8,6 +10,7 @@ import {
   Button,
   LinearProgress,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import {
   Book as BookIcon,
@@ -15,64 +18,52 @@ import {
   Person as PersonIcon,
   Assignment as AssignmentIcon,
 } from "@mui/icons-material";
+import { getMyCourses } from "../../services/classes.service";
+import type { Class } from "../../types/classes";
 
-const courses = [
-  {
-    id: 1,
-    name: "Advanced Mathematics",
-    code: "MATH301",
-    instructor: "Prof. Robert Smith",
-    schedule: "Mon, Wed 10:00 AM",
-    progress: 75,
-    credits: 3,
-    grade: "A",
-  },
-  {
-    id: 2,
-    name: "Physics: Mechanics",
-    code: "PHYS201",
-    instructor: "Dr. Emily Johnson",
-    schedule: "Tue, Thu 12:00 PM",
-    progress: 60,
-    credits: 4,
-    grade: "B+",
-  },
-  {
-    id: 3,
-    name: "English Literature",
-    code: "ENG150",
-    instructor: "Prof. Sarah Williams",
-    schedule: "Mon, Wed 2:00 PM",
-    progress: 90,
-    credits: 3,
-    grade: "A-",
-  },
-  {
-    id: 4,
-    name: "Computer Science",
-    code: "CS101",
-    instructor: "Dr. Michael Brown",
-    schedule: "Fri 9:00 AM",
-    progress: 45,
-    credits: 3,
-    grade: "B",
-  },
-];
+export default function MyCourse() {
+  const navigate = useNavigate();
+  const [courses, setCourses] = useState<Class[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-export default function MyCourses() {
+  useEffect(() => {
+    let mounted = true;
+
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getMyCourses();
+        if (mounted) setCourses(data);
+      } catch (err: any) {
+        if (mounted) setError(err?.message || "Failed to load courses");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (loading) return <CircularProgress />;
+  if (error)
+    return (
+      <Box>
+        <Typography color="error">{error}</Typography>
+      </Box>
+    );
+
   return (
     <Box>
-      <Typography variant="h4" fontWeight={600} gutterBottom>
-        My Courses
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-        Manage and track your enrolled courses
-      </Typography>
-
       <Grid container spacing={3}>
         {courses.map((course) => (
-          <Grid size={{ xs: 12, md: 4 }} key={course.id}>
-            <Card sx={{ borderRadius: 3, boxShadow: 2, height: "100%" }}>
+          <Grid key={course.id} size={{ xs: 12, md: 6 }}>
+            <Card>
               <CardContent>
                 <Box
                   sx={{
@@ -88,10 +79,10 @@ export default function MyCourses() {
                     </Avatar>
                     <Box>
                       <Typography variant="h6" fontWeight={600}>
-                        {course.name}
+                        {course.class_name || `Class ${course.id}`}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {course.code}
+                        {course.section || ""}
                       </Typography>
                     </Box>
                   </Box>
@@ -114,7 +105,9 @@ export default function MyCourses() {
                     <PersonIcon
                       sx={{ fontSize: 16, color: "text.secondary" }}
                     />
-                    <Typography variant="body2">{course.instructor}</Typography>
+                    <Typography variant="body2">
+                      {(course as any).instructor || "-"}
+                    </Typography>
                   </Box>
                   <Box
                     sx={{
@@ -127,14 +120,16 @@ export default function MyCourses() {
                     <ScheduleIcon
                       sx={{ fontSize: 16, color: "text.secondary" }}
                     />
-                    <Typography variant="body2">{course.schedule}</Typography>
+                    <Typography variant="body2">
+                      {(course as any).schedule || "-"}
+                    </Typography>
                   </Box>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <AssignmentIcon
                       sx={{ fontSize: 16, color: "text.secondary" }}
                     />
                     <Typography variant="body2">
-                      {course.credits} Credits
+                      {(course as any).credits ?? "-"} Credits
                     </Typography>
                   </Box>
                 </Box>
@@ -151,17 +146,21 @@ export default function MyCourses() {
                       Course Progress
                     </Typography>
                     <Typography variant="body2" fontWeight={500}>
-                      {course.progress}%
+                      {(course as any).progress ?? 0}%
                     </Typography>
                   </Box>
                   <LinearProgress
                     variant="determinate"
-                    value={course.progress}
+                    value={(course as any).progress ?? 0}
                     sx={{ height: 8, borderRadius: 4 }}
                   />
                 </Box>
 
-                <Button variant="outlined" fullWidth>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => navigate(`/student/my-course/${course.id}`)}
+                >
                   View Course Details
                 </Button>
               </CardContent>
