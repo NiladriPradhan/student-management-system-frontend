@@ -27,12 +27,6 @@ import { useEffect, useState } from "react";
 import { getStudentDashboard } from "../../services/dashboard";
 import type { StudentDashboardData } from "../../services/dashboard";
 
-const staticLabels = [
-  "Enrolled Courses",
-  "Completed Assignments",
-  "Overall GPA",
-  "Attendance",
-];
 
 // Student dashboard will be loaded from the server
 

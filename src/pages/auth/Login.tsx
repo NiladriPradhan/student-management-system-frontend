@@ -160,8 +160,8 @@ export default function Login() {
         );
         const contentPreview =
           typeof response === "string"
-            ? response.slice(0, 500)
-            : JSON.stringify(response).slice(0, 500);
+            ? String(response).slice(0, 500)
+            : JSON.stringify(response ?? {}).slice(0, 500);
         throw new Error(
           `Invalid response from server (type=${typeof response}): ${contentPreview}`,
         );

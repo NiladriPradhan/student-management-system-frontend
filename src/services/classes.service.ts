@@ -13,6 +13,7 @@ const normalizeClass = (data: Partial<Class>): Class => ({
   class_name: String(data.class_name ?? ""),
   section: String(data.section ?? ""),
   created_at: String(data.created_at ?? ""),
+  subject: ""
 });
 
 const normalizeClassListPayload = (

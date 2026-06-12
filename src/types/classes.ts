@@ -5,6 +5,8 @@ export interface Class {
   class_name: string;
   section: string;
   created_at: string;
+  subject?: string;
+  grade?: string;
 }
 
 export interface ClassListPayload {

@@ -7,6 +7,8 @@ export interface Attendance {
   attendance_date: string;
   status: AttendanceStatus;
   remarks: string;
+  class_id?: number;
+  class_name?: string;
 }
 
 export interface AttendanceListPayload {
